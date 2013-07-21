@@ -1,0 +1,98 @@
+{
+    "ClassificationModel": {
+        "1": {
+            "NotCount": 0, 
+            "Sentences": [
+                {
+                    "Text": "This is a review .", 
+                    "Label": 0
+                }, 
+                {
+                    "Text": "Hope standford parser can do its magic .", 
+                    "Label": 0
+                }, 
+                {
+                    "Text": "It will be awesome to see the magic .", 
+                    "Adjectives": [
+                        "awesome"
+                    ], 
+                    "Dependencies": [
+                        "nsubj,awesome,It", 
+                        "aux,awesome,will", 
+                        "cop,awesome,be", 
+                        "root,ROOT,awesome", 
+                        "xcomp,awesome,see"
+                    ], 
+                    "Label": 1
+                }, 
+                {
+                    "Text": "Yahoo !", 
+                    "Label": 0
+                }
+            ], 
+            "Label": 1
+        }, 
+        "3": {
+            "NotCount": 0, 
+            "Sentences": [
+                {
+                    "Text": "The food is AMAZING .", 
+                    "Label": 1
+                }
+            ], 
+            "Label": 1
+        }, 
+        "2": {
+            "NotCount": 0, 
+            "Sentences": [
+                {
+                    "Text": "Ilike the food there .", 
+                    "Label": 0
+                }, 
+                {
+                    "Text": "It 's good , cheap , tasty and service is just excellent .", 
+                    "Adjectives": [
+                        "good", 
+                        "tasty", 
+                        "excellent"
+                    ], 
+                    "Dependencies": [
+                        "nsubj,tasty,It", 
+                        "cop,tasty,'s", 
+                        "amod,tasty,good", 
+                        "advmod,tasty,cheap", 
+                        "root,ROOT,tasty", 
+                        "nsubj,excellent,service", 
+                        "cop,excellent,is", 
+                        "advmod,excellent,just", 
+                        "conj,tasty,excellent"
+                    ], 
+                    "Label": 1
+                }, 
+                {
+                    "Text": "Would recommend to everyone .", 
+                    "Label": 0
+                }, 
+                {
+                    "Text": "Definitely going back !", 
+                    "Label": 0
+                }
+            ], 
+            "Label": 1
+        }, 
+        "4": {
+            "NotCount": 0, 
+            "Sentences": [
+                {
+                    "Text": "Ihated the service .", 
+                    "Label": 0
+                }, 
+                {
+                    "Text": "Sad experience", 
+                    "Label": -1
+                }
+            ], 
+            "Label": -1
+        }
+    }
+}
