@@ -272,7 +272,7 @@ filetype = 'json'
 # filetype = 'xml'
 filepath = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon_concise.csv"
 lexicon = util.LoadLexiconFromCSV(filepath)
-posx, posy, negx, negy, neutx, neuty,accx,accy = 0,0,0,0,0,0,0,0
+posx, posy, negx, negy, neutx, neuty,accx,accy = 0, 0, 0, 0, 0, 0, 0, 0
 maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
 for i in range(-1, 0, 1):
     for j in range(1, 0, -1):
