@@ -218,4 +218,4 @@ pip-log.txt
 ## PyCharm
 #############
 
-.idea/
+.idea/*
