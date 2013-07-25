@@ -153,15 +153,15 @@ class SentimentEngine:
                 dependencies[adj][relation] |= dictconj[adj][relation]
         return adjectives, dependencies
 
-    def DumpDetails(sentences, lexicon, notCount, label):
+    def DumpDetails(self, sentences, lexicon, notCount, label):
         AdjR = 0.0
         adjAll = []
         for sentence in sentences:
             # if sentence["Text"].startswith("Joanie is not helpful"):
             #     x = 1
-            adjectives, dependencies = ExtractSentDetails(sentence)
+            adjectives, dependencies = self.ExtractSentDetails(sentence)
             adjAll.extend(adjectives)
-            allAdjectives = adjectives | GlobalAdjList
+            allAdjectives = adjectives | SentimentEngine.GlobalAdjList
             AdjS = 0.0
             words = wordpunct_tokenize(sentence["Text"])
             if len(words) <= 3:
@@ -172,7 +172,7 @@ class SentimentEngine:
                     AdjS = 0.0
                     print words[i],
                 elif word in allAdjectives and word in lexicon:
-                    multiplier = PredictMultiplier(word, dependencies[word],lexicon, words, i)
+                    multiplier = self.PredictMultiplier(word, dependencies[word],lexicon, words, i)
                     score = float(lexicon[word]) * multiplier
                     if multiplier < 1:
                         colortext = colored(words[i] + " (" + '{:.3}'.format(score) + ")", 'red',None,['underline'])
@@ -189,13 +189,13 @@ class SentimentEngine:
             print colortext
             AdjR += AdjS
         print
-        notScore = CalculateNotScore(notCount)
+        notScore = self.CalculateNotScore(notCount)
         print "Label:", label, "Not Count:", notCount
-        base = PredictBase(adjAll, lexicon)  # to change the base of the multiplier according to number of adjectives and text length
+        base = self.PredictBase(adjAll, lexicon)  # to change the base of the multiplier according to number of adjectives and text length
         colortext = colored("Adjectives: " + str(AdjR) + "*" + str(base) + " - " + str(notScore) + " = " + str(AdjR*base),'red')
         print colortext
 
-    def PredictSentiment(sentences, lexicon, notCount):
+    def self.PredictSentiment(sentences, lexicon, notCount):
         AdjR = 0.0
         # if text.startswith("For more photos and reviews do check out fourleggedfoodies"):
         #     x = 1
