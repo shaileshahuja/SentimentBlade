@@ -32,6 +32,10 @@ class SentimentEngine:
             return Sentiment.NEUTRAL
 
     def PredictBase(self, adjectives, lexicon):
+        """
+        Predict the base of the multiplier using the number of polar adjectives.
+        The values have been determined experimentally to maximize results.
+        """
         # Get the list of Adjectives which have sentiment polarity greater than 0.1
         PolarAdjList = [l for l in adjectives if l in lexicon and math.fabs(float(lexicon[l])) > 0.1]
         if len(PolarAdjList) > 0:
@@ -42,12 +46,18 @@ class SentimentEngine:
             return 1.0
     #    return 1.0
 
-    def PredictMultiplier(word, dependencies, lexicon, words, i):
-        multiplier = 1.0
+    def PredictMultiplier(self, word, dependencies, lexicon, words, i):
+        """
+        Given a word, calculate how other words affect the polarity of this word.
+        E.g: "not good" will change the polarity of "good" to negative.
+        Returns a multiplier for the word.
+        """
+        multiplier = 1.0 # start with the default multiplier of one, which means no change in polarity
         NegativeModifiers = {"not","n't", "no", "nothing","at"}
         PositiveModifiers = {"very","so","really", "super", "extremely"}
         NeutralModifiers = {"neither","nor"}
-        TooExceptionList = {"good", "awesome","brilliant","kind","great","tempting","big","overpowering","full","filled","stuffed","perfect","rare"}
+        TooExceptionList = {"good", "awesome","brilliant","kind","great","tempting","big",
+                            "overpowering","full","filled","stuffed","perfect","rare"}
         DilutionList = {"little", "bit"}
         modifierSet = set()
         for rel in dependencies:
