@@ -164,6 +164,10 @@ class SentimentEngine:
         return adjectives, dependencies
 
     def DumpDetails(self, sentences, lexicon, notCount, label):
+        """
+        This method uses the same logic as predict sentiment to rate reviews.
+        However, all the small details on how the calculation is done are printed for a review
+        """
         AdjR = 0.0
         adjAll = []
         for sentence in sentences:
@@ -205,15 +209,18 @@ class SentimentEngine:
         colortext = colored("Adjectives: " + str(AdjR) + "*" + str(base) + " - " + str(notScore) + " = " + str(AdjR*base),'red')
         print colortext
 
-    def self.PredictSentiment(sentences, lexicon, notCount):
+    def PredictSentiment(self, sentences, lexicon, notCount):
+        """
+        This method predicts the sentiment of a given review.
+        """
         AdjR = 0.0
         # if text.startswith("For more photos and reviews do check out fourleggedfoodies"):
         #     x = 1
         adjAll = []
         for sentence in sentences:
-            adjectives, dependencies = ExtractSentDetails(sentence)
+            adjectives, dependencies = self.ExtractSentDetails(sentence)
             adjAll.extend(adjectives)
-            allAdjectives = adjectives | GlobalAdjList
+            allAdjectives = adjectives | SentimentEngine.GlobalAdjList
             AdjS = 0.0
             words = wordpunct_tokenize(sentence["Text"])
             if len(words) <= 3:
@@ -223,13 +230,13 @@ class SentimentEngine:
                 if word in {"but", "if"}:
                     AdjS = 0.0
                 elif word in allAdjectives and word in lexicon:
-                    AdjS += float(lexicon[word]) * PredictMultiplier(word, dependencies[word], lexicon, words, i)
+                    AdjS += float(lexicon[word]) * self.PredictMultiplier(word, dependencies[word], lexicon, words, i)
             AdjR += AdjS
-        AdjR *= PredictBase(adjAll, lexicon)
-        notScore = CalculateNotScore(notCount)
+        AdjR *= self.PredictBase(adjAll, lexicon)
+        notScore = self.CalculateNotScore(notCount)
         return AdjR
 
-    def GetIter(filePath, filetype):
+    def GetIter(self, filePath, filetype):
         assert filetype in ['xml', 'json']
         if filetype == 'xml':
             root = ET.parse(filePath).getroot()
@@ -240,7 +247,7 @@ class SentimentEngine:
             TrainingData = json.loads(TrainingFile)
             return iter(range(1, len(TrainingData["ClassificationModel"]) + 1)), TrainingData["ClassificationModel"]
 
-    def NextXMLElement(iterator):
+    def NextXMLElement(self, iterator):
         doc = next(iterator)
         sentences = []
         label = None
@@ -266,7 +273,7 @@ class SentimentEngine:
                 sentences.append(sentence)
         return sentences, label, 0, docId
 
-    def NextJSONElement(iterator, data):
+    def NextJSONElement(self, iterator, data):
         docId = next(iterator)
         current = data[str(docId)]
         sentences = []
@@ -278,11 +285,11 @@ class SentimentEngine:
         label = current["Label"]
         return sentences, label, notCount, docId
 
-    def NextElement(iterator, data, filetype):
+    def NextElement(self, iterator, data, filetype):
         if filetype == 'json':
-            return NextJSONElement(iterator, data)
+            return self.NextJSONElement(iterator, data)
         if filetype == 'xml':
-            return NextXMLElement(iterator)
+            return self.NextXMLElement(iterator)
 
     stopWords = set(stopwords.words("english"))
     engnames = set(names.words())
