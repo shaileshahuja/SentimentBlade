@@ -296,7 +296,7 @@ class SentimentEngine:
         if filetype == 'json':
             return self.NextJSONElement(iterator, data)
         if filetype == 'xml':
-            return self.NextXMLElement(iterator)
+            return self.NextXMLElement(iterator) 
 
     def classify(self):
         posx, posy, negx, negy, neutx, neuty, accx, accy = 0, 0, 0, 0, 0, 0, 0, 0
