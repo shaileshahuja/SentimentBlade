@@ -16,17 +16,24 @@ __author__ = 'shailesh'
 class SentimentEngine:
     stopWords = stopwords.Words()
     engNames = names.Words()
-    GlobalAdjList = {"disappointing","disappointed","fresh","freshly","tasty","delicious","poor","disappointment","badly","sadly","sucks","sucked","crispy","yelled","love","loved","loving","poorly","underwhelming"}
+    GlobalAdjList = {"disappointing", "disappointed", "disappointment", "fresh", "freshly", "tasty", "delicious",
+                     "poor", "badly", "sadly", "sucks", "sucked", "crispy", "yelled", "love", "loved", "loving",
+                     "poorly", "underwhelming"}
 
     def __init__(self, lexPath, docPath):
         self.lexicon = util.LoadLexiconFromCSV(lexPath)
         self.docPath = docPath
 
-    @staticmethod
-    def classify(score, positiveBase, negativePeak):
-        if score > positiveBase:
+    def GetSentimentClass(self, score, positiveThreshold=1, negativeThreshold=-1):
+        """
+        This method returns the type of sentiment given the score of the review.
+        :param score: The score of a review
+        :param positiveThreshold: If score is higher than this threshold, review is considered positive
+        :param negativeThreshold: If score is lower than this threshold, review is considered negative
+        """
+        if score > positiveThreshold:
             return Sentiment.POSITIVE
-        elif score < negativePeak:
+        elif score < negativeThreshold:
             return Sentiment.NEGATIVE
         else:
             return Sentiment.NEUTRAL
@@ -205,7 +212,7 @@ class SentimentEngine:
         print
         notScore = self.CalculateNotScore(notCount)
         print "Label:", label, "Not Count:", notCount
-        base = self.PredictBase(adjAll, lexicon)  # to change the base of the multiplier according to number of adjectives and text length
+        base = self.PredictBase(adjAll, lexicon)
         colortext = colored("Adjectives: " + str(AdjR) + "*" + str(base) + " - " + str(notScore) + " = " + str(AdjR*base),'red')
         print colortext
 
@@ -291,84 +298,83 @@ class SentimentEngine:
         if filetype == 'xml':
             return self.NextXMLElement(iterator)
 
-    stopWords = set(stopwords.words("english"))
-    engnames = set(names.words())
+    def classify(self):
+        posx, posy, negx, negy, neutx, neuty, accx, accy = 0, 0, 0, 0, 0, 0, 0, 0
+        maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
+        for i in range(-1, 0, 1):
+            for j in range(1, 0, -1):
+                iterator, data = self.GetIter(filename, filetype)
+                predictedOverall = []
+                expectedSentiment = []
+                posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
+                while True:
+                    try:
+                        sentences, label, notCount, docId = self.NextElement(iterator, data, filetype)
+                        if not sentences:
+                            continue
+                        if label == 'NULL':
+                            break
+                        label = int(label)
+                        expectedSentiment.append(label)
+                        predicted = self.PredictSentiment(sentences, self.lexicon, notCount)
+                        predictedOverall.append(self.GetSentimentClass(predicted, j, i))
+                        if label == Sentiment.POSITIVE:
+                            TotPos += 1
+                        elif label == Sentiment.NEGATIVE:
+                            TotNeg += 1
+                        else:
+                            TotNeut += 1
+                        if self.GetSentimentClass(predicted, j, i) != label:
+                            # DumpDetails(sentences, lexicon, notCount, label)
+                            # print "ID", docId, "\n"
+                            sadCount += 1
+                    except StopIteration:
+                        break
+
+                print "Sad Count:", sadCount
+                pos_prec = util.precision_with_class(predictedOverall, expectedSentiment, 1)
+                neg_prec = util.precision_with_class(predictedOverall, expectedSentiment, -1)
+                neut_prec = util.precision_with_class(predictedOverall, expectedSentiment, 0)
+                pos_rec = util.recall_with_class(predictedOverall, expectedSentiment, 1)
+                neg_rec = util.recall_with_class(predictedOverall, expectedSentiment, -1)
+                neut_rec = util.recall_with_class(predictedOverall, expectedSentiment, 0)
+                pos_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 1)
+                neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
+                neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
+                accuracy = util.accuracy(predictedOverall,expectedSentiment)
+                print "Current Positive stats (", j,i,"): ","\t", '{:.2%}'.format(pos_prec),"\t", '{:.2%}'.format(pos_rec),"\t",'{:.2%}'.format(pos_f1)
+                print "Current Negative stats (", j,i,"): ", "\t",'{:.2%}'.format(neg_prec),"\t",'{:.2%}'.format(neg_rec),"\t",'{:.2%}'.format(neg_f1)
+                print "Current Neutral stats (", j,i,"): ", "\t",'{:.2%}'.format(neut_prec),"\t",'{:.2%}'.format(neut_rec),"\t",'{:.2%}'.format(neut_f1)
+                cprint("Current Accuracy ( " + str(j) + " " + str(i) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
+                if pos_f1 > maxposf1:
+                    maxposf1 = pos_f1
+                    posx = j
+                    posy = i
+                if neg_f1 > maxnegf1:
+                    maxnegf1 = neg_f1
+                    negx = j
+                    negy = i
+                if neut_f1 > maxneutf1:
+                    maxneutf1 = neut_f1
+                    neutx = j
+                    neuty = i
+                if accuracy > maxacc:
+                    maxacc = accuracy
+                    accx = j
+                    accy = i
+        print "Maximum Positive F1: ",'{:.2%}'.format(maxposf1), "at", posx, posy
+        print "Maximum Negative F1: ",'{:.2%}'.format(maxnegf1), "at", negx, negy
+        print "Maximum Neutral F1: ",'{:.2%}'.format(maxneutf1), "at", neutx, neuty
+        cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx) + str(accy),'red')
+
+        #    sentences = sent_tokenize(text)
+        #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
+
+if __name__ == "__main__":
     filename = "/home/shailesh/webservice/src/classifier_v3.0/MovieReviews.json"
     # filename = "/home/shailesh/webservice/src/classifier_v3.0/ParsedTrainingData.txt"
     filetype = 'json'
     # filename = "/home/shailesh/SentimentRazor/files/ParsedReviewList.xml"
     # filetype = 'xml'
     filepath = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon_concise.csv"
-    lexicon = util.LoadLexiconFromCSV(filepath)
-    posx, posy, negx, negy, neutx, neuty,accx,accy = 0, 0, 0, 0, 0, 0, 0, 0
-    maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
-    for i in range(-1, 0, 1):
-        for j in range(1, 0, -1):
-            iterator, data = GetIter(filename, filetype)
-            predictedOverall = []
-            expectedSentiment = []
-            posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
-            while True:
-                try:
-                    sentences, label, notCount, docId = NextElement(iterator, data, filetype)
-                    if not sentences:
-                        continue
-                    if label == 'NULL':
-                        break
-                    label = int(label)
-                    expectedSentiment.append(label)
-                    predicted = PredictSentiment(sentences, lexicon, notCount)
-                    predictedOverall.append(classify(predicted,j,i))
-                    if label == 1:
-                        TotPos+=1
-                    elif label == -1:
-                        TotNeg+=1
-                    else:
-                        TotNeut+=1
-                    if classify(predicted,j,i) != label:
-                        # DumpDetails(sentences, lexicon, notCount, label)
-                        # print "ID", docId, "\n"
-                        sadCount += 1
-                except StopIteration:
-                    break
-
-            print "Sad Count:", sadCount
-            pos_prec = util.precision_with_class(predictedOverall, expectedSentiment, 1)
-            neg_prec = util.precision_with_class(predictedOverall, expectedSentiment, -1)
-            neut_prec = util.precision_with_class(predictedOverall, expectedSentiment, 0)
-            pos_rec = util.recall_with_class(predictedOverall, expectedSentiment, 1)
-            neg_rec = util.recall_with_class(predictedOverall, expectedSentiment, -1)
-            neut_rec = util.recall_with_class(predictedOverall, expectedSentiment, 0)
-            pos_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 1)
-            neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
-            neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
-            accuracy = util.accuracy(predictedOverall,expectedSentiment)
-            print "Current Positive stats (", j,i,"): ","\t", '{:.2%}'.format(pos_prec),"\t", '{:.2%}'.format(pos_rec),"\t",'{:.2%}'.format(pos_f1)
-            print "Current Negative stats (", j,i,"): ", "\t",'{:.2%}'.format(neg_prec),"\t",'{:.2%}'.format(neg_rec),"\t",'{:.2%}'.format(neg_f1)
-            print "Current Neutral stats (", j,i,"): ", "\t",'{:.2%}'.format(neut_prec),"\t",'{:.2%}'.format(neut_rec),"\t",'{:.2%}'.format(neut_f1)
-            cprint("Current Accuracy ( " + str(j) + " " + str(i) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
-            if pos_f1 > maxposf1:
-                maxposf1 = pos_f1
-                posx = j
-                posy = i
-            if neg_f1 > maxnegf1:
-                maxnegf1 = neg_f1
-                negx = j
-                negy = i
-            if neut_f1 > maxneutf1:
-                maxneutf1 = neut_f1
-                neutx = j
-                neuty = i
-            if accuracy > maxacc:
-                maxacc = accuracy
-                accx = j
-                accy = i
-    print "Maximum Positive F1: ",'{:.2%}'.format(maxposf1), "at", posx, posy
-    print "Maximum Negative F1: ",'{:.2%}'.format(maxnegf1), "at", negx, negy
-    print "Maximum Neutral F1: ",'{:.2%}'.format(maxneutf1), "at", neutx, neuty
-    cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx) + str(accy),'red')
-
-    #    sentences = sent_tokenize(text)
-    #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
-
 
