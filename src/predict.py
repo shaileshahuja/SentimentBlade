@@ -365,7 +365,7 @@ class SentimentEngine:
         print "Maximum Positive F1: ", '{:.2%}'.format(maxposf1), "at", posx, posy
         print "Maximum Negative F1: ", '{:.2%}'.format(maxnegf1), "at", negx, negy
         print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx, neuty
-        cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx) + str(accy),'red')
+        cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx) + str(accy), 'red')
 
         #    sentences = sent_tokenize(text)
         #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
