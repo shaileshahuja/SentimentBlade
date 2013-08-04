@@ -14,8 +14,8 @@ __author__ = 'shailesh'
 
 
 class SentimentEngine:
-    stopWords = stopwords.Words()
-    engNames = names.Words()
+    stopWords = set(stopwords.words())
+    engNames = set(names.words())
     GlobalAdjList = {"disappointing", "disappointed", "disappointment", "fresh", "freshly", "tasty", "delicious",
                      "poor", "badly", "sadly", "sucks", "sucked", "crispy", "yelled", "love", "loved", "loving",
                      "poorly", "underwhelming"}
@@ -23,6 +23,12 @@ class SentimentEngine:
     def __init__(self, lexPath, docPath):
         self.lexicon = util.LoadLexiconFromCSV(lexPath)
         self.docPath = docPath
+        if docPath.endswith("json"):
+            self.docType = "json"
+        elif docPath.endswith("xml"):
+            self.docPath = "xml"
+        else:
+            self.docPath = "txt"
 
     def GetSentimentClass(self, score, positiveThreshold=1, negativeThreshold=-1):
         """
@@ -303,13 +309,13 @@ class SentimentEngine:
         maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
         for i in range(-1, 0, 1):
             for j in range(1, 0, -1):
-                iterator, data = self.GetIter(filename, filetype)
+                iterator, data = self.GetIter(self.docPath, self.docType)
                 predictedOverall = []
                 expectedSentiment = []
                 posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
                 while True:
                     try:
-                        sentences, label, notCount, docId = self.NextElement(iterator, data, filetype)
+                        sentences, label, notCount, docId = self.NextElement(iterator, data, self.docType)
                         if not sentences:
                             continue
                         if label == 'NULL':
@@ -371,10 +377,12 @@ class SentimentEngine:
         #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
 
 if __name__ == "__main__":
-    filename = "/home/shailesh/webservice/src/classifier_v3.0/MovieReviews.json"
-    # filename = "/home/shailesh/webservice/src/classifier_v3.0/ParsedTrainingData.txt"
-    filetype = 'json'
-    # filename = "/home/shailesh/SentimentRazor/files/ParsedReviewList.xml"
-    # filetype = 'xml'
-    filepath = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon_concise.csv"
+    jsonFile = "../files/MovieReviews.json"
+    textFile = "../files/ParsedTrainingData.txt"
+    XMLFile = "../files/ParsedReviewList.xml"
+    lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
+    se = SentimentEngine(lexPath, jsonFile)
+    # se = SentimentEngine(lexpath, XMLFile)
+    # se = SentimentEngine(lexpath, textFile)
+    se.classify()
 
