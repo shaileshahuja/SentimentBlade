@@ -26,9 +26,9 @@ class SentimentEngine:
         if docPath.endswith("json"):
             self.docType = "json"
         elif docPath.endswith("xml"):
-            self.docPath = "xml"
+            self.docType = "xml"
         else:
-            self.docPath = "txt"
+            self.docType = "txt"
 
     def GetSentimentClass(self, score, positiveThreshold=1, negativeThreshold=-1):
         """
