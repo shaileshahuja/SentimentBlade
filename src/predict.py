@@ -28,7 +28,7 @@ class SentimentEngine:
         elif docPath.endswith("xml"):
             self.docType = "xml"
         else:
-            self.docType = "txt"
+            self.docType = "json"
 
     def GetSentimentClass(self, score, positiveThreshold=1, negativeThreshold=-1):
         """
@@ -331,8 +331,8 @@ class SentimentEngine:
                         else:
                             TotNeut += 1
                         if self.GetSentimentClass(predicted, j, i) != label:
-                            # DumpDetails(sentences, lexicon, notCount, label)
-                            # print "ID", docId, "\n"
+                            self.DumpDetails(sentences, self.lexicon, notCount, label)
+                            print "ID", docId, "\n"
                             sadCount += 1
                     except StopIteration:
                         break
@@ -381,8 +381,8 @@ if __name__ == "__main__":
     textFile = "../files/ParsedTrainingData.txt"
     XMLFile = "../files/ParsedReviewList.xml"
     lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
-    se = SentimentEngine(lexPath, jsonFile)
-    # se = SentimentEngine(lexpath, XMLFile)
-    # se = SentimentEngine(lexpath, textFile)
+#     se = SentimentEngine(lexPath, jsonFile)
+#     se = SentimentEngine(lexPath, XMLFile)
+    se = SentimentEngine(lexPath, textFile)
     se.classify()
 
