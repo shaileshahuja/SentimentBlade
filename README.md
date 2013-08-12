@@ -1,3 +1,5 @@
+NOTE: Currently the software is being remodelled and it wont give the best results.  
+
 A sentiment analysis engine, written in Python.   
 Given a review, the system classifies it into postive, negative or neutral.
 It is possible to crawl reviews of a certain restaurant and get an analysis of
