@@ -381,8 +381,8 @@ if __name__ == "__main__":
     textFile = "../files/ParsedTrainingData.txt"
     XMLFile = "../files/ParsedReviewList.xml"
     lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
-#     se = SentimentEngine(lexPath, jsonFile)
-#     se = SentimentEngine(lexPath, XMLFile)
-    se = SentimentEngine(lexPath, textFile)
+    # se = SentimentEngine(lexPath, jsonFile)
+    se = SentimentEngine(lexPath, XMLFile)
+#     se = SentimentEngine(lexPath, textFile)
     se.classify()
 
