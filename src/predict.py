@@ -30,16 +30,16 @@ class SentimentEngine:
         else:
             self.docType = "json"
 
-    def GetSentimentClass(self, score, positiveThreshold=1, negativeThreshold=-1):
+    def GetSentimentClass(self, score, threshold=1):
         """
         This method returns the type of sentiment given the score of the review.
         :param score: The score of a review
-        :param positiveThreshold: If score is higher than this threshold, review is considered positive
-        :param negativeThreshold: If score is lower than this threshold, review is considered negative
+        :param threshold: If score is higher than this threshold, review is considered positive
+                          If score is lower than -threshold, review is considered negative
         """
-        if score > positiveThreshold:
+        if score > threshold:
             return Sentiment.POSITIVE
-        elif score < negativeThreshold:
+        elif score < -threshold:
             return Sentiment.NEGATIVE
         else:
             return Sentiment.NEUTRAL
@@ -65,60 +65,60 @@ class SentimentEngine:
         E.g: "not good" will change the polarity of "good" to negative.
         Returns a multiplier for the word.
         """
-        multiplier = 1.0 # start with the default multiplier of one, which means no change in polarity
-        NegativeModifiers = {"not","n't", "no", "nothing","at"}
-        PositiveModifiers = {"very","so","really", "super", "extremely"}
-        NeutralModifiers = {"neither","nor"}
-        TooExceptionList = {"good", "awesome","brilliant","kind","great","tempting","big",
-                            "overpowering","full","filled","stuffed","perfect","rare"}
-        DilutionList = {"little", "bit"}
-        modifierSet = set()
-        for rel in dependencies:
-            modifierSet |= dependencies[rel]
-        if i > 0 and words[i - 1].lower() == "too" and word not in TooExceptionList:
-            if word in ["much", "many"]:
-                multiplier = -100.0
-            elif float(lexicon[word]) < 0:
-                multiplier *= 2.0
-            else:
-                multiplier *= -0.5
-        elif modifierSet & NegativeModifiers:
-            multiplier *= -1.0
-        elif modifierSet & PositiveModifiers:
-            multiplier *= 2.0
-        elif modifierSet & NeutralModifiers:
-            multiplier *= 0.0
-        elif i > 0:
-            if words[i - 1].lower() == "not":
-                multiplier *= -1.0
-
-        if (i > 0 and words[i - 1].lower() in DilutionList) or (i > 1 and words[i - 2].lower() in DilutionList):
-            multiplier *= 0.5
-        return multiplier
-        # multiplier = 1.0
-        # NegativeModifiers = ["not","n't", "no", "nothing"]
-        # PositiveModifiers = ["very","so","really"]
-        # NeutralModifiers = ["neither","nor"]
-        # TooExceptionList = ["good", "awesome","brilliant","kind","great","tempting","big","overpowering","full","filled","stuffed","perfect","rare"]
-        # if i > 0:
-        #     if words[i-1].lower() == "not" and words[i].lower() in lexicon:
-        #         multiplier*=-0.5
-        #     elif (words[i-1].lower() in NegativeModifiers or (len(words[i-1]) > 2 and words[i-1].lower().endswith("nt") and words[i-1].lower()[-3] not in ['a','e','i','o','u']) or words[i-1].lower().endswith("n't")) \
-        #         or (i > 1 and (words[i-2].lower() in NegativeModifiers or (len(words[i-2]) > 2 and words[i-2].lower().endswith("nt") and words[i-2].lower()[-3] not in ['a','e','i','o','u']) or
-        #                            words[i-2].lower().endswith("n't") or (words[i-1].lower() == "t" and words[i-2].lower() == "'")))or (i > 2 and words[i-2].lower() == "t" and words[i-3].lower() == "'"):
-        #         multiplier *=-1.0
-        #     elif words[i-1].lower() in PositiveModifiers:
+        # multiplier = 1.0 # start with the default multiplier of one, which means no change in polarity
+        # NegativeModifiers = {"not","n't", "no", "nothing","at"}
+        # PositiveModifiers = {"very","so","really", "super", "extremely"}
+        # NeutralModifiers = {"neither","nor"}
+        # TooExceptionList = {"good", "awesome","brilliant","kind","great","tempting","big",
+        #                     "overpowering","full","filled","stuffed","perfect","rare"}
+        # DilutionList = {"little", "bit"}
+        # modifierSet = set()
+        # for rel in dependencies:
+        #     modifierSet |= dependencies[rel]
+        # if i > 0 and words[i - 1].lower() == "too" and word not in TooExceptionList:
+        #     if word in ["much", "many"]:
+        #         multiplier = -100.0
+        #     elif float(lexicon[word]) < 0:
         #         multiplier *= 2.0
-        #     elif words[i-1].lower() in NeutralModifiers or (i > 1 and words[i-2].lower() in NeutralModifiers):
-        #         multiplier *= 0.0
-        #     elif words[i-1].lower() == "too" and words[i].lower() not in TooExceptionList and words[i].lower() in lexicon:
-        #         if words[i].lower() in ["much","many"]:
-        #             multiplier = -100.0
-        #         elif float(lexicon[words[i].lower()]) < 0:
-        #             multiplier *= 2.0
-        #         else:
-        #             multiplier *= -0.5
+        #     else:
+        #         multiplier *= -0.5
+        # elif modifierSet & NegativeModifiers:
+        #     multiplier *= -1.0
+        # elif modifierSet & PositiveModifiers:
+        #     multiplier *= 2.0
+        # elif modifierSet & NeutralModifiers:
+        #     multiplier *= 0.0
+        # elif i > 0:
+        #     if words[i - 1].lower() == "not":
+        #         multiplier *= -1.0
+        #
+        # if (i > 0 and words[i - 1].lower() in DilutionList) or (i > 1 and words[i - 2].lower() in DilutionList):
+        #     multiplier *= 0.5
         # return multiplier
+        multiplier = 1.0
+        NegativeModifiers = ["not","n't", "no", "nothing"]
+        PositiveModifiers = ["very","so","really"]
+        NeutralModifiers = ["neither","nor"]
+        TooExceptionList = ["good", "awesome","brilliant","kind","great","tempting","big","overpowering","full","filled","stuffed","perfect","rare"]
+        if i > 0:
+            if words[i-1].lower() == "not" and words[i].lower() in lexicon:
+                multiplier *= -0.5
+            elif (words[i-1].lower() in NegativeModifiers or (len(words[i-1]) > 2 and words[i-1].lower().endswith("nt") and words[i-1].lower()[-3] not in ['a','e','i','o','u']) or words[i-1].lower().endswith("n't")) \
+                or (i > 1 and (words[i-2].lower() in NegativeModifiers or (len(words[i-2]) > 2 and words[i-2].lower().endswith("nt") and words[i-2].lower()[-3] not in ['a','e','i','o','u']) or
+                                   words[i-2].lower().endswith("n't") or (words[i-1].lower() == "t" and words[i-2].lower() == "'")))or (i > 2 and words[i-2].lower() == "t" and words[i-3].lower() == "'"):
+                multiplier *= -1.0
+            elif words[i-1].lower() in PositiveModifiers:
+                multiplier *= 2.0
+            elif words[i-1].lower() in NeutralModifiers or (i > 1 and words[i-2].lower() in NeutralModifiers):
+                multiplier *= 0.0
+            elif words[i-1].lower() == "too" and words[i].lower() not in TooExceptionList and words[i].lower() in lexicon:
+                if words[i].lower() in ["much","many"]:
+                    multiplier = -100.0
+                elif float(lexicon[words[i].lower()]) < 0:
+                    multiplier *= 2.0
+                else:
+                    multiplier *= -0.5
+        return multiplier
 
     def CalculateNotScore(self, notCount):
         """
@@ -255,8 +255,8 @@ class SentimentEngine:
             root = ET.parse(filePath).getroot()
             return iter(root), None
         if filetype == 'json':
-            with open(filePath,'r') as file:
-                TrainingFile = file.read()
+            with open(filePath, 'r') as file1:
+                TrainingFile = file1.read()
             TrainingData = json.loads(TrainingFile)
             return iter(range(1, len(TrainingData["ClassificationModel"]) + 1)), TrainingData["ClassificationModel"]
 
@@ -276,10 +276,10 @@ class SentimentEngine:
                     if data.tag == "text":
                         sentence["Text"] = data.text
                     elif data.tag == "adjectives":
-                        if not data.text == None:
+                        if data.text is not None:
                             sentence["Adjectives"] = data.text.split()
                     elif data.tag == "dependencies":
-                        if not data.text == None:
+                        if data.text is not None:
                             sentence["Dependencies"] = data.text.split()
                         else:
                             sentence["Dependencies"] = []
@@ -305,84 +305,81 @@ class SentimentEngine:
             return self.NextXMLElement(iterator)
 
     def classify(self):
-        posx, posy, negx, negy, neutx, neuty, accx, accy = 0, 0, 0, 0, 0, 0, 0, 0
+        posx, negx, neutx, accx, = 0, 0, 0, 0
         maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
-        for i in range(-1, 0, 1):
-            for j in range(1, 0, -1):
-                iterator, data = self.GetIter(self.docPath, self.docType)
-                predictedOverall = []
-                expectedSentiment = []
-                posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
-                while True:
-                    try:
-                        sentences, label, notCount, docId = self.NextElement(iterator, data, self.docType)
-                        if not sentences:
-                            continue
-                        if label == 'NULL':
-                            break
-                        label = int(label)
-                        expectedSentiment.append(label)
-                        predicted = self.PredictSentiment(sentences, self.lexicon, notCount)
-                        predictedOverall.append(self.GetSentimentClass(predicted, j, i))
-                        if label == Sentiment.POSITIVE:
-                            TotPos += 1
-                        elif label == Sentiment.NEGATIVE:
-                            TotNeg += 1
-                        else:
-                            TotNeut += 1
-                        if self.GetSentimentClass(predicted, j, i) != label:
-                            self.DumpDetails(sentences, self.lexicon, notCount, label)
-                            print "ID", docId, "\n"
-                            sadCount += 1
-                    except StopIteration:
+        for threshold in range(1, 0, -1):
+            iterator, data = self.GetIter(self.docPath, self.docType)
+            predictedOverall = []
+            expectedSentiment = []
+            posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
+            while True:
+                try:
+                    sentences, label, notCount, docId = self.NextElement(iterator, data, self.docType)
+                    if not sentences:
+                        continue
+                    if label == 'NULL':
                         break
+                    label = int(label)
+                    expectedSentiment.append(label)
+                    predicted = self.PredictSentiment(sentences, self.lexicon, notCount)
+                    predictedOverall.append(self.GetSentimentClass(predicted, threshold))
+                    if label == Sentiment.POSITIVE:
+                        TotPos += 1
+                    elif label == Sentiment.NEGATIVE:
+                        TotNeg += 1
+                    else:
+                        TotNeut += 1
+                    if self.GetSentimentClass(predicted, threshold) != label and math.fabs(predicted) > 7:
+                        self.DumpDetails(sentences, self.lexicon, notCount, label)
+                        print "ID", docId, "\n"
+                        sadCount += 1
+                except StopIteration:
+                    break
 
-                print "Sad Count:", sadCount
-                pos_prec = util.precision_with_class(predictedOverall, expectedSentiment, 1)
-                neg_prec = util.precision_with_class(predictedOverall, expectedSentiment, -1)
-                neut_prec = util.precision_with_class(predictedOverall, expectedSentiment, 0)
-                pos_rec = util.recall_with_class(predictedOverall, expectedSentiment, 1)
-                neg_rec = util.recall_with_class(predictedOverall, expectedSentiment, -1)
-                neut_rec = util.recall_with_class(predictedOverall, expectedSentiment, 0)
-                pos_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 1)
-                neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
-                neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
-                accuracy = util.accuracy(predictedOverall,expectedSentiment)
-                print "Current Positive stats (", j,i,"): ","\t", '{:.2%}'.format(pos_prec),"\t", '{:.2%}'.format(pos_rec),"\t",'{:.2%}'.format(pos_f1)
-                print "Current Negative stats (", j,i,"): ", "\t",'{:.2%}'.format(neg_prec),"\t",'{:.2%}'.format(neg_rec),"\t",'{:.2%}'.format(neg_f1)
-                print "Current Neutral stats (", j,i,"): ", "\t",'{:.2%}'.format(neut_prec),"\t",'{:.2%}'.format(neut_rec),"\t",'{:.2%}'.format(neut_f1)
-                cprint("Current Accuracy ( " + str(j) + " " + str(i) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
-                if pos_f1 > maxposf1:
-                    maxposf1 = pos_f1
-                    posx = j
-                    posy = i
-                if neg_f1 > maxnegf1:
-                    maxnegf1 = neg_f1
-                    negx = j
-                    negy = i
-                if neut_f1 > maxneutf1:
-                    maxneutf1 = neut_f1
-                    neutx = j
-                    neuty = i
-                if accuracy > maxacc:
-                    maxacc = accuracy
-                    accx = j
-                    accy = i
-        print "Maximum Positive F1: ", '{:.2%}'.format(maxposf1), "at", posx, posy
-        print "Maximum Negative F1: ", '{:.2%}'.format(maxnegf1), "at", negx, negy
-        print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx, neuty
-        cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx) + str(accy), 'red')
+            print "Sad Count:", sadCount
+            pos_prec = util.precision_with_class(predictedOverall, expectedSentiment, 1)
+            neg_prec = util.precision_with_class(predictedOverall, expectedSentiment, -1)
+            neut_prec = util.precision_with_class(predictedOverall, expectedSentiment, 0)
+            pos_rec = util.recall_with_class(predictedOverall, expectedSentiment, 1)
+            neg_rec = util.recall_with_class(predictedOverall, expectedSentiment, -1)
+            neut_rec = util.recall_with_class(predictedOverall, expectedSentiment, 0)
+            pos_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 1)
+            neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
+            neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
+            accuracy = util.accuracy(predictedOverall,expectedSentiment)
+            print "Current Positive stats (", threshold, "): ","\t", '{:.2%}'.format(pos_prec), "\t", '{:.2%}'.format(pos_rec), "\t", '{:.2%}'.format(pos_f1)
+            print "Current Negative stats (", threshold, "): ", "\t",'{:.2%}'.format(neg_prec), "\t", '{:.2%}'.format(neg_rec), "\t", '{:.2%}'.format(neg_f1)
+            print "Current Neutral stats (", threshold, "): ", "\t",'{:.2%}'.format(neut_prec), "\t", '{:.2%}'.format(neut_rec), "\t", '{:.2%}'.format(neut_f1)
+            cprint("Current Accuracy ( " + str(threshold) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
+            if pos_f1 > maxposf1:
+                maxposf1 = pos_f1
+                posx = threshold
+            if neg_f1 > maxnegf1:
+                maxnegf1 = neg_f1
+                negx = threshold
+            if neut_f1 > maxneutf1:
+                maxneutf1 = neut_f1
+                neutx = threshold
+            if accuracy > maxacc:
+                maxacc = accuracy
+                accx = threshold
+        print "Maximum Positive F1: ", '{:.2%}'.format(maxposf1), "at", posx
+        print "Maximum Negative F1: ", '{:.2%}'.format(maxnegf1), "at", negx
+        print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx
+        cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx), 'red')
 
         #    sentences = sent_tokenize(text)
         #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
 
 if __name__ == "__main__":
-    jsonFile = "../files/MovieReviews.json"
-    textFile = "../files/ParsedTrainingData.txt"
-    XMLFile = "../files/ParsedReviewList.xml"
+    jsonFile = "../files/1000NTLKMovieReviews.json"
+    textFile = "../files/1000HungryGoWhereReviews.txt"
+    textSFile = "../files/100HungryGoWhereReviews.txt"
+    XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
     lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
     # se = SentimentEngine(lexPath, jsonFile)
-    se = SentimentEngine(lexPath, XMLFile)
-#     se = SentimentEngine(lexPath, textFile)
+    # se = SentimentEngine(lexPath, XMLFile)
+    # se = SentimentEngine(lexPath, textFile)
+    se = SentimentEngine(lexPath, textSFile)
     se.classify()
 
