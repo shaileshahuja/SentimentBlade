@@ -1,48 +1,28 @@
-from __future__ import division
-import simplejson as json
-from Utils import UtilMethods as util
-from nltk.tokenize import wordpunct_tokenize
-from nltk.corpus import stopwords,names
-from termcolor import colored,cprint
-import nltk, math
-from collections import defaultdict
-from xml.etree import ElementTree as ET
+
+
+__author__ = 'Shailesh'
 import copy
+from collections import defaultdict
+from nltk.tokenize import wordpunct_tokenize
+from termcolor import colored
+from nltk.corpus import stopwords,names
+import math
 from Sentiment import Sentiment
 
-__author__ = 'shailesh'
+class God:
 
-
-class SentimentEngine:
     stopWords = set(stopwords.words())
     engNames = set(names.words())
     GlobalAdjList = {"disappointing", "disappointed", "disappointment", "fresh", "freshly", "tasty", "delicious",
                      "poor", "badly", "sadly", "sucks", "sucked", "crispy", "yelled", "love", "loved", "loving",
                      "poorly", "underwhelming"}
 
-    def __init__(self, lexPath, docPath):
-        self.lexicon = util.LoadLexiconFromCSV(lexPath)
-        self.docPath = docPath
-        if docPath.endswith("json"):
-            self.docType = "json"
-        elif docPath.endswith("xml"):
-            self.docType = "xml"
-        else:
-            self.docType = "json"
+    def __init__(self, debug=False):
+        self.debug = debug
 
-    def GetSentimentClass(self, score, threshold=1):
-        """
-        This method returns the type of sentiment given the score of the review.
-        :param score: The score of a review
-        :param threshold: If score is higher than this threshold, review is considered positive
-                          If score is lower than -threshold, review is considered negative
-        """
-        if score > threshold:
-            return Sentiment.POSITIVE
-        elif score < -threshold:
-            return Sentiment.NEGATIVE
-        else:
-            return Sentiment.NEUTRAL
+    def SetDebugParameters(self, positiveThreshold=1, negativeThreshold=-1):
+        self.positiveThreshold = positiveThreshold
+        self.negativeThreshold = negativeThreshold
 
     def PredictBase(self, adjectives, lexicon):
         """
@@ -143,7 +123,7 @@ class SentimentEngine:
         :param sentence: The dictionary of sentence properties extracted from the JSON/XML sentence element
         """
         if "Adjectives" in sentence:
-            adjList = [w.lower() for w in sentence["Adjectives"] if w.lower() not in SentimentEngine.stopWords and w.lower() not in SentimentEngine.engNames]
+            adjList = [w.lower() for w in sentence["Adjectives"] if w.lower() not in God.stopWords and w.lower() not in God.engNames]
             adjectives = set(adjList)
         else:
             adjectives = set()
@@ -188,7 +168,7 @@ class SentimentEngine:
             #     x = 1
             adjectives, dependencies = self.ExtractSentDetails(sentence)
             adjAll.extend(adjectives)
-            allAdjectives = adjectives | SentimentEngine.GlobalAdjList
+            allAdjectives = adjectives | God.GlobalAdjList
             AdjS = 0.0
             words = wordpunct_tokenize(sentence["Text"])
             if len(words) <= 3:
@@ -222,9 +202,9 @@ class SentimentEngine:
         colortext = colored("Adjectives: " + str(AdjR) + "*" + str(base) + " - " + str(notScore) + " = " + str(AdjR*base),'red')
         print colortext
 
-    def PredictSentiment(self, sentences, lexicon, notCount):
+    def PredictReviewScore(self, sentences, lexicon, notCount, label):
         """
-        This method predicts the sentiment of a given review.
+        This method gives a score to a review.
         """
         AdjR = 0.0
         # if text.startswith("For more photos and reviews do check out fourleggedfoodies"):
@@ -233,7 +213,7 @@ class SentimentEngine:
         for sentence in sentences:
             adjectives, dependencies = self.ExtractSentDetails(sentence)
             adjAll.extend(adjectives)
-            allAdjectives = adjectives | SentimentEngine.GlobalAdjList
+            allAdjectives = adjectives | God.GlobalAdjList
             AdjS = 0.0
             words = wordpunct_tokenize(sentence["Text"])
             if len(words) <= 3:
@@ -247,139 +227,16 @@ class SentimentEngine:
             AdjR += AdjS
         AdjR *= self.PredictBase(adjAll, lexicon)
         notScore = self.CalculateNotScore(notCount)
-        return AdjR
+        finalScore = AdjR
+        if self.DebugRequested(finalScore, label):
+            self.DumpDetails(sentences, lexicon, notCount, label)
+        return finalScore
 
-    def GetIter(self, filePath, filetype):
-        assert filetype in ['xml', 'json']
-        if filetype == 'xml':
-            root = ET.parse(filePath).getroot()
-            return iter(root), None
-        if filetype == 'json':
-            with open(filePath, 'r') as file1:
-                TrainingFile = file1.read()
-            TrainingData = json.loads(TrainingFile)
-            return iter(range(1, len(TrainingData["ClassificationModel"]) + 1)), TrainingData["ClassificationModel"]
-
-    def NextXMLElement(self, iterator):
-        doc = next(iterator)
-        sentences = []
-        label = None
-        docId = doc.get('id')
-        for element in doc:
-            if element.tag == "stars":
-                stars = element.text
-            elif element.tag == "polarity":
-                label = element.text
-            elif element.tag == "sentence":
-                sentence = dict()
-                for data in element:
-                    if data.tag == "text":
-                        sentence["Text"] = data.text
-                    elif data.tag == "adjectives":
-                        if data.text is not None:
-                            sentence["Adjectives"] = data.text.split()
-                    elif data.tag == "dependencies":
-                        if data.text is not None:
-                            sentence["Dependencies"] = data.text.split()
-                        else:
-                            sentence["Dependencies"] = []
-                sentences.append(sentence)
-        return sentences, label, 0, docId
-
-    def NextJSONElement(self, iterator, data):
-        docId = next(iterator)
-        current = data[str(docId)]
-        sentences = []
-        notCount = current["NotCount"]
-        if "Sentences" in current:
-            if not isinstance(current["Sentences"], list):
-                current["Sentences"] = [current["Sentences"]]
-            sentences = current["Sentences"]
-        label = current["Label"]
-        return sentences, label, notCount, docId
-
-    def NextElement(self, iterator, data, filetype):
-        if filetype == 'json':
-            return self.NextJSONElement(iterator, data)
-        if filetype == 'xml':
-            return self.NextXMLElement(iterator)
-
-    def classify(self):
-        posx, negx, neutx, accx, = 0, 0, 0, 0
-        maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
-        for threshold in range(1, 0, -1):
-            iterator, data = self.GetIter(self.docPath, self.docType)
-            predictedOverall = []
-            expectedSentiment = []
-            posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
-            while True:
-                try:
-                    sentences, label, notCount, docId = self.NextElement(iterator, data, self.docType)
-                    if not sentences:
-                        continue
-                    if label == 'NULL':
-                        break
-                    label = int(label)
-                    expectedSentiment.append(label)
-                    predicted = self.PredictSentiment(sentences, self.lexicon, notCount)
-                    predictedOverall.append(self.GetSentimentClass(predicted, threshold))
-                    if label == Sentiment.POSITIVE:
-                        TotPos += 1
-                    elif label == Sentiment.NEGATIVE:
-                        TotNeg += 1
-                    else:
-                        TotNeut += 1
-                    if self.GetSentimentClass(predicted, threshold) != label and math.fabs(predicted) > 7:
-                        self.DumpDetails(sentences, self.lexicon, notCount, label)
-                        print "ID", docId, "\n"
-                        sadCount += 1
-                except StopIteration:
-                    break
-
-            print "Sad Count:", sadCount
-            pos_prec = util.precision_with_class(predictedOverall, expectedSentiment, 1)
-            neg_prec = util.precision_with_class(predictedOverall, expectedSentiment, -1)
-            neut_prec = util.precision_with_class(predictedOverall, expectedSentiment, 0)
-            pos_rec = util.recall_with_class(predictedOverall, expectedSentiment, 1)
-            neg_rec = util.recall_with_class(predictedOverall, expectedSentiment, -1)
-            neut_rec = util.recall_with_class(predictedOverall, expectedSentiment, 0)
-            pos_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 1)
-            neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
-            neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
-            accuracy = util.accuracy(predictedOverall,expectedSentiment)
-            print "Current Positive stats (", threshold, "): ","\t", '{:.2%}'.format(pos_prec), "\t", '{:.2%}'.format(pos_rec), "\t", '{:.2%}'.format(pos_f1)
-            print "Current Negative stats (", threshold, "): ", "\t",'{:.2%}'.format(neg_prec), "\t", '{:.2%}'.format(neg_rec), "\t", '{:.2%}'.format(neg_f1)
-            print "Current Neutral stats (", threshold, "): ", "\t",'{:.2%}'.format(neut_prec), "\t", '{:.2%}'.format(neut_rec), "\t", '{:.2%}'.format(neut_f1)
-            cprint("Current Accuracy ( " + str(threshold) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
-            if pos_f1 > maxposf1:
-                maxposf1 = pos_f1
-                posx = threshold
-            if neg_f1 > maxnegf1:
-                maxnegf1 = neg_f1
-                negx = threshold
-            if neut_f1 > maxneutf1:
-                maxneutf1 = neut_f1
-                neutx = threshold
-            if accuracy > maxacc:
-                maxacc = accuracy
-                accx = threshold
-        print "Maximum Positive F1: ", '{:.2%}'.format(maxposf1), "at", posx
-        print "Maximum Negative F1: ", '{:.2%}'.format(maxnegf1), "at", negx
-        print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx
-        cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx), 'red')
-
-        #    sentences = sent_tokenize(text)
-        #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
-
-if __name__ == "__main__":
-    jsonFile = "../files/1000NTLKMovieReviews.json"
-    textFile = "../files/1000HungryGoWhereReviews.txt"
-    textSFile = "../files/100HungryGoWhereReviews.txt"
-    XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
-    lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
-    # se = SentimentEngine(lexPath, jsonFile)
-    # se = SentimentEngine(lexPath, XMLFile)
-    # se = SentimentEngine(lexPath, textFile)
-    se = SentimentEngine(lexPath, textSFile)
-    se.classify()
-
+    def DebugRequested(self, score, label):
+        if not self.debug:
+            return False
+        if label == Sentiment.NEGATIVE and score > self.positiveThreshold:
+            return True
+        elif label == Sentiment.POSITIVE and score < self.negativeThreshold:
+            return True
+        return False
