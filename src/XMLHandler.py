@@ -2,7 +2,7 @@ __author__ = 'shailesh'
 
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
-from Review import Review
+from YelpReview import Review
 
 
 def Prettify(elem):
@@ -48,8 +48,8 @@ def DumpCrawlerOutputAsXML(reviews,filePath):
 def LoadCrawledXMLFile(filePath):
     """
     function to load crawled data
-    better way to handle this function is to use find method,
-    although find method is slower than this implementation
+    a more organised way to handle this function is to use find method,
+    although that method is slower than this implementation
     """
     reviews = []
     stars, url, date, user, review, useful, funny, cool = None, None, None, None, None, None, None, None

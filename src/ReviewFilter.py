@@ -5,11 +5,11 @@ TODO: Convert this code into a class with useful functions
 __author__ = 'shailesh'
 
 from XMLHandler import LoadCrawledXMLFile,DumpSortedReviews
-from Review import Review
+from YelpReview import Review
 import random
 
 # load the reviews that have been crawled
-filePath = "/home/shailesh/PycharmProjects/SentimentRazor/files/CrawlerOutput.xml"
+filePath = "../files/CrawlerOutput.xml"
 reviews = LoadCrawledXMLFile(filePath)
 
 # sorting uses a lot of measures to have more balance in the distribution of ratings in the top 1000 reviews

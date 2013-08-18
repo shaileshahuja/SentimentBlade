@@ -9,7 +9,7 @@ import sys
 import HTMLParser
 from bs4 import BeautifulSoup, SoupStrainer
 import re
-from Review import Review
+from YelpReview import Review
 from XMLHandler import DumpCrawlerOutputAsXML
 import time
 
@@ -20,6 +20,9 @@ class YelpCrawler():
         self.filePath = filePath
         self.baseURL = baseURL
         self.IncompleteReviews = 0
+        # now dump the output to xml file
+        filePath = "../files/FinalReviewsList.xml"
+        DumpSortedReviews(finalreviewslist,filePath)
 
     def GetPageHTML(self, url):
         """

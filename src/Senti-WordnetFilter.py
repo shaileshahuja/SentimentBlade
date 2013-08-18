@@ -13,11 +13,11 @@ with open(filename,'r') as file:
         if data.startswith("#"):
             continue
         parts = data[:-1].split(',')
-        actual+=1
+        actual += 1
         if parts[0] != 'a':
             continue
         lexicon[parts[1]] = parts[2]
-        total+=1
+        total += 1
 
 
 #filename = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon.csv"
@@ -29,10 +29,10 @@ with open(filename,'r') as file:
 #file.close()
 
 filename = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon_concise.csv"
-file = open(filename,'wb')
+file = open(filename, 'wb')
 wr = csv.writer(file)
-for key,value in sorted(lexicon.items()):
-    row = [key,value]
+for key, value in sorted(lexicon.items()):
+    row = [key, value]
     wr.writerow(row)
 file.close()
 
