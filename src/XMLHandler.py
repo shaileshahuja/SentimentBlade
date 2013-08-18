@@ -4,12 +4,14 @@ from xml.etree import ElementTree as ET
 from xml.dom import minidom
 from Review import Review
 
+
 def Prettify(elem):
     """Return a pretty-printed XML string for the Element.
     """
     rough_string = ET.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
+
 
 def DumpCrawlerOutputAsXML(reviews,filePath):
     """
@@ -42,6 +44,7 @@ def DumpCrawlerOutputAsXML(reviews,filePath):
     with open(filePath,'w') as file1:
         file1.write(XMLstring)
 
+
 def LoadCrawledXMLFile(filePath):
     """
     function to load crawled data
@@ -49,7 +52,7 @@ def LoadCrawledXMLFile(filePath):
     although find method is slower than this implementation
     """
     reviews = []
-    stars,url,date,user,review,useful,funny,cool = None,None,None,None,None,None,None,None
+    stars, url, date, user, review, useful, funny, cool = None, None, None, None, None, None, None, None
     root = ET.parse(filePath).getroot()
     for doc in root:
         for element in doc:
@@ -69,8 +72,9 @@ def LoadCrawledXMLFile(filePath):
                 funny = element.text
             elif element.tag == "cool":
                 cool = element.text
-        reviews.append(Review(stars,url,date,user,review,useful,funny,cool))
+        reviews.append(Review(stars, url, date, user, review, useful, funny, cool))
     return reviews
+
 
 def DumpSortedReviews(reviews,filePath):
     root = ET.Element("document")

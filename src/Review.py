@@ -16,9 +16,9 @@ class Review(object):
         self.cool = cool
 
     @staticmethod
-    def CreateFromRawData(stars,url,date,user,review,useful,funny,cool):
+    def CreateFromRawData(stars, url, date, user, review, useful, funny, cool):
         url = "http://www.yelp.com.sg" + url
-        review = review.encode("ascii","ignore")
+        review = review.encode("ascii", "ignore")
         if useful == u' ':  # NOTE: comparison with unicode character &nbsp;, not ascii space
             useful = str(0)
         else:
@@ -31,7 +31,7 @@ class Review(object):
             cool = str(0)
         else:
             cool = str(cool[1])
-        return Review(stars,url,date,user,review,useful,funny,cool)
+        return Review(stars, url, date, user, review, useful, funny, cool)
 
     @staticmethod
     def CompareReviews(r1, r2):

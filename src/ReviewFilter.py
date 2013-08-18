@@ -1,3 +1,7 @@
+"""
+This file is to used for filtering the crawled reviews, if it is needed.
+TODO: Convert this code into a class with useful functions
+"""
 __author__ = 'shailesh'
 
 from XMLHandler import LoadCrawledXMLFile,DumpSortedReviews
@@ -54,5 +58,5 @@ finalreviewslist.extend(TrainingDataSet)
 finalreviewslist.extend(rest800)
 
 # now dump the output to xml file
-filePath = "/home/shailesh/PycharmProjects/SentimentRazor/files/FinalReviewsList.xml"
+filePath = "../files/FinalReviewsList.xml"
 DumpSortedReviews(finalreviewslist,filePath)
