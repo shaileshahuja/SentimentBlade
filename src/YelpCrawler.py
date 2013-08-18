@@ -20,9 +20,6 @@ class YelpCrawler():
         self.filePath = filePath
         self.baseURL = baseURL
         self.IncompleteReviews = 0
-        # now dump the output to xml file
-        filePath = "../files/FinalReviewsList.xml"
-        DumpSortedReviews(finalreviewslist,filePath)
 
     def GetPageHTML(self, url):
         """
@@ -41,7 +38,7 @@ class YelpCrawler():
             except urllib2.URLError:
                 print "GetPageHTML failed"
                 print sys.exc_value
-                time.sleep(5)
+                time.sleep(10)
                 continue
         return data
 
@@ -60,13 +57,17 @@ class YelpCrawler():
         count = self.GetReviewCount(soup)
         reviews += self.GetAllReviewsInPage(soup)
         while len(reviews) + self.IncompleteReviews < count:
+            currentSize = len(reviews) + self.IncompleteReviews
             print "Reviews Crawled:", len(reviews)
-            url = self.baseURL + "?start=" + str(len(reviews) + self.IncompleteReviews)
+            url = self.baseURL + "?start=" + str(currentSize)
             print "URL:", url
             html = self.GetPageHTML(url)
-            print "HTML start\n", html[:1000],"\n HTML end"
+            print "HTML start\n", html[:1000], "\n HTML end"
             soup = self.GetSoupElement(html)
             reviews += self.GetAllReviewsInPage(soup)
+            # to break out of the loop if the crawler is stuck
+            if currentSize == len(reviews) + self.IncompleteReviews:
+                break
         DumpCrawlerOutputAsXML(reviews, self.filePath)
 
     def GetSoupElement(self,html):

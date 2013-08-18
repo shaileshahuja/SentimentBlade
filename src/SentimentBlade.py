@@ -1,16 +1,13 @@
-from God import God
-
 __author__ = 'shailesh'
 
 import os
-import sys
-import math
-from nltk.tokenize import wordpunct_tokenize
-from nltk.corpus import stopwords, names
 import json
 from Utils import UtilMethods as util
 from YelpCrawler import YelpCrawler
 from XMLHandler import LoadCrawledXMLFile,DumpSortedReviews
+from God import God
+from Sentiment import Sentiment
+
 
 class SentimentBlade:
 
@@ -19,7 +16,7 @@ class SentimentBlade:
 
     def Run(self):
         #CRAWL
-        crawlerOutputPath = "../files/CrawlerOutput.xml"
+        crawlerOutputPath = "../files/CrawlerOutput2.xml"
         crawler = YelpCrawler(url, crawlerOutputPath)
         crawler.Crawl()
 
@@ -34,32 +31,31 @@ class SentimentBlade:
         os.system("java -jar ../files/stanfordparser.jar xml " + filePath)
 
         #PREDICT
-        god = God(True)
-        filename = os.path.join(os.path.dirname(filePath),"ParsedList.json")
-        with open(filename, 'r') as file:
+        lexicon = util.LoadLexiconFromCSV("../files/SentiWordNet_Lexicon_concise.csv")
+        god = God(lexicon, True)
+        parsedReviewsPath = os.path.join(os.path.dirname(filePath), "ParsedList.json")
+        with open(parsedReviewsPath, 'r') as file:
             TrainingFile = file.read()
-        lexicon = util.LoadLexiconFromCSV(os.path.join(os.path.dirname(sys.argv[0]),"SentiWordNet_Lexicon_concise.csv"))
         classificationData = json.loads(TrainingFile)
         for k in range(len(classificationData["ClassificationModel"])):
             current = classificationData["ClassificationModel"][str(k + 1)]
             notCount = current["NotCount"]
             if "Sentences" in current:
-                if not isinstance(current["Sentences"],list):
+                if not isinstance(current["Sentences"], list):
                     current["Sentences"] = [current["Sentences"]]
                 sentences = current["Sentences"]
             else:
                 continue
-            current["Label"] = classify(PredictSentiment(sentences, lexicon, notCount),1,1)
-        return classificationData
+            current["Label"] = Sentiment.GetSentimentClass(god.PredictReviewScore(sentences, notCount), 1)
+            god.DumpDetails(sentences, notCount, current["Label"])
 
-filePath = "../files/samples.txt"
+        #DUMP
+        classifiedData = json.dumps(classificationData, indent=4)
+        filename = os.path.join(os.path.dirname(filePath), 'PredictedList.json')
+        with open(filename,'w') as file:
+            file.write(classifiedData)
+        print "Classification complete. Final output stored at:," + filename
 
-classifiedData = json.dumps(PredictAndAppendLabel(classificationData), indent = 4)
-filename = os.path.join(os.path.dirname(filePath), 'PredictedList.json')
-with open(filename,'w') as file:
-    file.write(classifiedData)
-
-print "Classification complete. Final output stored at:," + filename
 
 if __name__ == "__main__":
     url = "http://www.yelp.com.sg/biz/kokkari-estiatorio-san-francisco"

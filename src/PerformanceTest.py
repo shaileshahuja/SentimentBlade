@@ -84,7 +84,7 @@ class PerformanceTest:
             return self.NextXMLElement(iterator)
 
     def PerformTest(self):
-        god = God(True)
+        god = God(self.lexicon, True)
         god.SetDebugParameters(7, -7)
         posx, negx, neutx, accx, = 0, 0, 0, 0
         maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
@@ -102,7 +102,7 @@ class PerformanceTest:
                         break
                     label = int(label)
                     expectedSentiment.append(label)
-                    predicted = god.PredictReviewScore(sentences, self.lexicon, notCount, label)
+                    predicted = god.PredictReviewScore(sentences, notCount, label)
                     predictedOverall.append(Sentiment.GetSentimentClass(predicted, threshold))
                     if label == Sentiment.POSITIVE:
                         TotPos += 1
