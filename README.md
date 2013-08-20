@@ -1,4 +1,4 @@
-A <i>sentiment analysis engine</i>, written in <i>Python</i>.   
+A <b><i>sentiment analysis engine</i></b>, written in <b><i>Python</i></b>.   
 Given a review, the system classifies it into <b>postive</b>, <b>negative</b> or <b>neutral</b>.
 It is possible to crawl reviews of a certain restaurant and get an analysis of the reviews for that restaurant. However, it is for educational puposes only, as Yelp TOC may not allow usage of their content by other parties.  
 The other possibility is to crawl movie reviews from IMDB (<a href=https://github.com/shaileshahuja/SentimentBlade/issues/8>to be implemented</a>). The algorithm also needs to be optimised for movie reviews, using an automated algorithm (<a href=https://github.com/shaileshahuja/SentimentBlade/issues/9>impact training</a>). 
@@ -14,4 +14,6 @@ Have a look at the
 and the 
 <a href=https://docs.google.com/file/d/0B4fGOv7vgnt9NVU2QTJURVZmbEE/edit?usp=sharing> final report</a>.  
 
-![alt tag](https://docs.google.com/file/d/0B4fGOv7vgnt9TWJlVUhMLUN3bUE/edit?usp=sharing)
+<b><i>Preview of how each review is analysed and broken down: <b></i>
+  
+![alt tag](http://i44.tinypic.com/2d6wm8i.png)
