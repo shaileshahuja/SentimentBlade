@@ -8,8 +8,10 @@ The other possibility is to crawl movie reviews from IMDB (<a href=https://githu
 <b>The in-depth analysis of each review includes:</b>  
 1. Adjectives highlighting, thus clearly indicating where the review focuses on  
 2. Scoring of each review to indicate how strongly the opinion has been presented  
-3. Summary of overall scores of the restaurant  
+3. Summary of overall scores of the restaurant    
 
+To run, please start "<b>SentimentBlade.py</b>". Edit the URL there to crawl. To see the performance, run "<b>PerformanceTest.py</b>". You can change the dataset to be used. 
+  
 Have a look at the 
 <a href=https://docs.google.com/file/d/0B4fGOv7vgnt9S3pJTFNENzJ3djQ/edit?usp=sharing> preliminary design</a>
 and the 
