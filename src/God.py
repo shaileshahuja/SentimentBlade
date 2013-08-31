@@ -7,7 +7,7 @@ from termcolor import colored
 from nltk.corpus import stopwords,names
 import math
 from Sentiment import Sentiment
-
+from PredictionFunctions import PredictionFunctions
 
 class God:
     stopWords = set(stopwords.words())
@@ -45,61 +45,9 @@ class God:
         E.g: "not good" will change the polarity of "good" to negative.
         Returns a multiplier for the word.
         """
-        # multiplier = 1.0 # start with the default multiplier of one, which means no change in polarity
-        # NegativeModifiers = {"not","n't", "no", "nothing","at"}
-        # PositiveModifiers = {"very","so","really", "super", "extremely"}
-        # NeutralModifiers = {"neither","nor"}
-        # TooExceptionList = {"good", "awesome","brilliant","kind","great","tempting","big",
-        #                     "overpowering","full","filled","stuffed","perfect","rare"}
-        # DilutionList = {"little", "bit"}
-        # modifierSet = set()
-        # for rel in dependencies:
-        #     modifierSet |= dependencies[rel]
-        # if i > 0 and words[i - 1].lower() == "too" and word not in TooExceptionList:
-        #     if word in ["much", "many"]:
-        #         multiplier = -100.0
-        #     elif float(self.lexicon[word]) < 0:
-        #         multiplier *= 2.0
-        #     else:
-        #         multiplier *= -0.5
-        # elif modifierSet & NegativeModifiers:
-        #     multiplier *= -1.0
-        # elif modifierSet & PositiveModifiers:
-        #     multiplier *= 2.0
-        # elif modifierSet & NeutralModifiers:
-        #     multiplier *= 0.0
-        # elif i > 0:
-        #     if words[i - 1].lower() == "not":
-        #         multiplier *= -1.0
-        #
-        # if (i > 0 and words[i - 1].lower() in DilutionList) or (i > 1 and words[i - 2].lower() in DilutionList):
-        #     multiplier *= 0.5
-        # return multiplier
-        multiplier = 1.0
-        NegativeModifiers = ["not", "n't", "no", "nothing"]
-        PositiveModifiers = ["very", "so", "really"]
-        NeutralModifiers = ["neither", "nor"]
-        TooExceptionList = ["good", "awesome", "brilliant", "kind", "great", "tempting", "big", "overpowering",
-                            "full", "filled", "stuffed", "perfect", "rare"]
-        if i > 0:
-            if words[i-1].lower() == "not" and words[i].lower() in self.lexicon:
-                multiplier *= -0.5
-            elif (words[i-1].lower() in NegativeModifiers or (len(words[i-1]) > 2 and words[i-1].lower().endswith("nt") and words[i-1].lower()[-3] not in ['a','e','i','o','u']) or words[i-1].lower().endswith("n't")) \
-                or (i > 1 and (words[i-2].lower() in NegativeModifiers or (len(words[i-2]) > 2 and words[i-2].lower().endswith("nt") and words[i-2].lower()[-3] not in ['a','e','i','o','u']) or
-                                   words[i-2].lower().endswith("n't") or (words[i-1].lower() == "t" and words[i-2].lower() == "'")))or (i > 2 and words[i-2].lower() == "t" and words[i-3].lower() == "'"):
-                multiplier *= -1.0
-            elif words[i-1].lower() in PositiveModifiers:
-                multiplier *= 2.0
-            elif words[i-1].lower() in NeutralModifiers or (i > 1 and words[i-2].lower() in NeutralModifiers):
-                multiplier *= 0.0
-            elif words[i-1].lower() == "too" and words[i].lower() not in TooExceptionList and words[i].lower() in self.lexicon:
-                if words[i].lower() in ["much","many"]:
-                    multiplier = -100.0
-                elif float(self.lexicon[words[i].lower()]) < 0:
-                    multiplier *= 2.0
-                else:
-                    multiplier *= -0.5
-        return multiplier
+        # return PredictionFunctions.DependencyFunction(self.lexicon, word, dependencies, words, i)
+        # return PredictionFunctions.RelativeFunction(self.lexicon, word, dependencies, words, i)
+        return PredictionFunctions.CombinedFunction(self.lexicon, word, dependencies, words, i)
 
     def CalculateNotScore(self, notCount):
         """

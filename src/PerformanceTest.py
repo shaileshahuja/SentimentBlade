@@ -2,7 +2,6 @@ from __future__ import division
 import simplejson as json
 from Utils import UtilMethods as util
 from termcolor import cprint
-import math
 from xml.etree import ElementTree as ET
 from Sentiment import Sentiment
 from God import God
@@ -11,7 +10,9 @@ __author__ = 'shailesh'
 
 
 class PerformanceTest:
-
+    """
+    Class to perform tests on the training sets. Can be used to improve the classifier by printing the detailed dump.
+    """
     def __init__(self, lexPath, docPath):
         self.lexicon = util.LoadLexiconFromCSV(lexPath)
         self.docPath = docPath
@@ -22,24 +23,24 @@ class PerformanceTest:
         else:
             self.docType = "json"
 
-    def GetIter(self, filePath, filetype):
+    def GetIter(self):
         """
-
-        :param filePath:
-        :param filetype:
-        :return:
+        Returns the iterator which can go through the test document reviews one by one
         """
-        assert filetype in ['xml', 'json']
-        if filetype == 'xml':
-            root = ET.parse(filePath).getroot()
-            return iter(root), None
-        if filetype == 'json':
-            with open(filePath, 'r') as file1:
+        assert self.docType in ['xml', 'json']
+        if self.docType == 'xml':
+            root = ET.parse(self.docPath).getroot()
+            return iter(root)
+        if self.docType == 'json':
+            with open(self.docPath, 'r') as file1:
                 TrainingFile = file1.read()
             TrainingData = json.loads(TrainingFile)
-            return iter(range(1, len(TrainingData["ClassificationModel"]) + 1)), TrainingData["ClassificationModel"]
+            return TrainingData["ClassificationModel"].iteritems()
 
     def NextXMLElement(self, iterator):
+        """
+        Returns the next XML element
+        """
         doc = next(iterator)
         sentences = []
         label = None
@@ -65,9 +66,11 @@ class PerformanceTest:
                 sentences.append(sentence)
         return sentences, label, 0, docId
 
-    def NextJSONElement(self, iterator, data):
-        docId = next(iterator)
-        current = data[str(docId)]
+    def NextJSONElement(self, iterator):
+        """
+        Returns the next json element
+        """
+        docId, current = next(iterator)
         sentences = []
         notCount = current["NotCount"]
         if "Sentences" in current:
@@ -77,25 +80,32 @@ class PerformanceTest:
         label = current["Label"]
         return sentences, label, notCount, docId
 
-    def NextElement(self, iterator, data, filetype):
-        if filetype == 'json':
-            return self.NextJSONElement(iterator, data)
-        if filetype == 'xml':
+    def NextElement(self, iterator):
+        """
+        Returns the next element from the iterator
+        """
+        if self.docType == 'json':
+            return self.NextJSONElement(iterator)
+        if self.docType == 'xml':
             return self.NextXMLElement(iterator)
 
     def PerformTest(self):
+        """
+        This method loads the test data file, and tests how good the prediction is.
+        It also prints the precision, recall and F1 scores.
+        """
         god = God(self.lexicon, True)
         god.SetDebugParameters(7, -7)
         posx, negx, neutx, accx, = 0, 0, 0, 0
         maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
         for threshold in range(1, 0, -1):
-            iterator, data = self.GetIter(self.docPath, self.docType)
+            iterator = self.GetIter()
             predictedOverall = []
             expectedSentiment = []
-            posCount = negCount = neutCount = sadCount = TotPos = TotNeg = TotNeut = 0
+            sadCount = TotPos = TotNeg = TotNeut = 0
             while True:
                 try:
-                    sentences, label, notCount, docId = self.NextElement(iterator, data, self.docType)
+                    sentences, label, notCount, docId = self.NextElement(iterator)
                     if not sentences:
                         continue
                     if label == 'NULL':
@@ -127,9 +137,12 @@ class PerformanceTest:
             neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
             neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
             accuracy = util.accuracy(predictedOverall,expectedSentiment)
-            print "Current Positive stats (", threshold, "): ","\t", '{:.2%}'.format(pos_prec), "\t", '{:.2%}'.format(pos_rec), "\t", '{:.2%}'.format(pos_f1)
-            print "Current Negative stats (", threshold, "): ", "\t",'{:.2%}'.format(neg_prec), "\t", '{:.2%}'.format(neg_rec), "\t", '{:.2%}'.format(neg_f1)
-            print "Current Neutral stats (", threshold, "): ", "\t",'{:.2%}'.format(neut_prec), "\t", '{:.2%}'.format(neut_rec), "\t", '{:.2%}'.format(neut_f1)
+            print "Current Positive stats (", threshold, "): ","\t", '{:.2%}'.format(pos_prec), \
+                "\t", '{:.2%}'.format(pos_rec), "\t", '{:.2%}'.format(pos_f1)
+            print "Current Negative stats (", threshold, "): ", "\t",'{:.2%}'.format(neg_prec), "\t", \
+                '{:.2%}'.format(neg_rec), "\t", '{:.2%}'.format(neg_f1)
+            print "Current Neutral stats (", threshold, "): ", "\t",'{:.2%}'.format(neut_prec), "\t", \
+                '{:.2%}'.format(neut_rec), "\t", '{:.2%}'.format(neut_f1)
             cprint("Current Accuracy ( " + str(threshold) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
             if pos_f1 > maxposf1:
                 maxposf1 = pos_f1
@@ -148,8 +161,22 @@ class PerformanceTest:
         print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx
         cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx), 'red')
 
-        #    sentences = sent_tokenize(text)
-        #    predictedSentences = PredictAllSentences(sentences, predictedOverall, lexicon)
+    def ImpactTraining(self):
+        iterator = self.GetIter()
+        god = God(self.lexicon)
+        while True:
+            x = 1
+            try:
+                sentences, label, notCount, docId = self.NextElement(iterator)
+                for sentence in sentences:
+                    adjectives, dependencies = god.ExtractSentDetails(sentence)
+                predicted = god.PredictReviewScore(sentences, notCount, label)
+                if (label == Sentiment.POSITIVE and predicted < label) or (label == Sentiment.NEGATIVE and predicted > label):
+                    # Underpredicted
+                    adjustmentScore = label - predicted
+
+            except StopIteration:
+                break
 
 if __name__ == "__main__":
     jsonFile = "../files/1000NTLKMovieReviews.json"
@@ -157,8 +184,8 @@ if __name__ == "__main__":
     textSFile = "../files/100HungryGoWhereReviews.txt"
     XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
     lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
-    # se = PerformanceTest(lexPath, jsonFile)
-    se = PerformanceTest(lexPath, XMLFile)
+    se = PerformanceTest(lexPath, jsonFile)
+    # se = PerformanceTest(lexPath, XMLFile)
     # se = PerformanceTest(lexPath, textFile)
     # se = PerformanceTest(lexPath, textSFile)
     se.PerformTest()
