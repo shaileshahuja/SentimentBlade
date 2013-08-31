@@ -1,7 +1,7 @@
 __author__ = 'shailesh'
 
 import csv
-filename = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon.csv"
+filename = "../files/lexicons/SentiWordNet_Lexicon.csv"
 lexicon = dict()
 total = 0
 actual = 0
@@ -28,7 +28,7 @@ with open(filename,'r') as file:
 #    wr.writerow(row)
 #file.close()
 
-filename = "/home/shailesh/webservice/src/classifier_v3.0/SentiWordNet_Lexicon_concise.csv"
+filename = "../files/lexicons/SentiWordNet_Lexicon_concise.csv"
 file = open(filename, 'wb')
 wr = csv.writer(file)
 for key, value in sorted(lexicon.items()):

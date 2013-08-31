@@ -5,7 +5,6 @@ from termcolor import cprint
 from xml.etree import ElementTree as ET
 from Sentiment import Sentiment
 from God import God
-
 __author__ = 'shailesh'
 
 
@@ -102,7 +101,7 @@ class PerformanceTest:
             iterator = self.GetIter()
             predictedOverall = []
             expectedSentiment = []
-            sadCount = TotPos = TotNeg = TotNeut = 0
+            demons = TotPos = TotNeg = TotNeut = 0
             while True:
                 try:
                     sentences, label, notCount, docId = self.NextElement(iterator)
@@ -122,11 +121,11 @@ class PerformanceTest:
                         TotNeut += 1
                     if god.DebugRequested(predicted, label):
                         print "ID", docId, "\n"
-                        sadCount += 1
+                        demons += 1
                 except StopIteration:
                     break
 
-            print "Sad Count:", sadCount
+            print "Demons:", demons
             pos_prec = util.precision_with_class(predictedOverall, expectedSentiment, 1)
             neg_prec = util.precision_with_class(predictedOverall, expectedSentiment, -1)
             neut_prec = util.precision_with_class(predictedOverall, expectedSentiment, 0)
@@ -136,14 +135,14 @@ class PerformanceTest:
             pos_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 1)
             neg_f1 = util.f1_with_class(predictedOverall, expectedSentiment, -1)
             neut_f1 = util.f1_with_class(predictedOverall, expectedSentiment, 0)
-            accuracy = util.accuracy(predictedOverall,expectedSentiment)
+            accuracy = util.accuracy(predictedOverall, expectedSentiment)
             print "Current Positive stats (", threshold, "): ","\t", '{:.2%}'.format(pos_prec), \
                 "\t", '{:.2%}'.format(pos_rec), "\t", '{:.2%}'.format(pos_f1)
-            print "Current Negative stats (", threshold, "): ", "\t",'{:.2%}'.format(neg_prec), "\t", \
+            print "Current Negative stats (", threshold, "): ", "\t", '{:.2%}'.format(neg_prec), "\t", \
                 '{:.2%}'.format(neg_rec), "\t", '{:.2%}'.format(neg_f1)
-            print "Current Neutral stats (", threshold, "): ", "\t",'{:.2%}'.format(neut_prec), "\t", \
+            print "Current Neutral stats (", threshold, "): ", "\t", '{:.2%}'.format(neut_prec), "\t", \
                 '{:.2%}'.format(neut_rec), "\t", '{:.2%}'.format(neut_f1)
-            cprint("Current Accuracy ( " + str(threshold) + " ):\t\t\t" + '{:.2%}'.format(accuracy),'red')
+            cprint("Current Accuracy ( " + str(threshold) + " ):\t\t\t" + '{:.2%}'.format(accuracy), 'red')
             if pos_f1 > maxposf1:
                 maxposf1 = pos_f1
                 posx = threshold
@@ -161,29 +160,12 @@ class PerformanceTest:
         print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx
         cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx), 'red')
 
-    def ImpactTraining(self):
-        iterator = self.GetIter()
-        god = God(self.lexicon)
-        while True:
-            x = 1
-            try:
-                sentences, label, notCount, docId = self.NextElement(iterator)
-                for sentence in sentences:
-                    adjectives, dependencies = god.ExtractSentDetails(sentence)
-                predicted = god.PredictReviewScore(sentences, notCount, label)
-                if (label == Sentiment.POSITIVE and predicted < label) or (label == Sentiment.NEGATIVE and predicted > label):
-                    # Underpredicted
-                    adjustmentScore = label - predicted
-
-            except StopIteration:
-                break
-
 if __name__ == "__main__":
     jsonFile = "../files/1000NTLKMovieReviews.json"
     textFile = "../files/1000HungryGoWhereReviews.txt"
     textSFile = "../files/100HungryGoWhereReviews.txt"
     XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
-    lexPath = "../files/SentiWordNet_Lexicon_concise.csv"
+    lexPath = "../files/lexicons/SentiWordNet_Lexicon_concise.csv"
     se = PerformanceTest(lexPath, jsonFile)
     # se = PerformanceTest(lexPath, XMLFile)
     # se = PerformanceTest(lexPath, textFile)

@@ -189,3 +189,26 @@ class God:
         elif label == Sentiment.POSITIVE and score < self.negativeThreshold:
             return True
         return False
+
+    def GetImpact(self, sentences):
+        impactTable = dict()
+        adjAll = []
+        totalImpact = 0.0
+        for sentence in sentences:
+            adjectives, dependencies = self.ExtractSentDetails(sentence)
+            adjAll.extend(adjectives)
+            allAdjectives = adjectives | God.GlobalAdjList
+            sentenceImpact = 0.0
+            words = wordpunct_tokenize(sentence["Text"])
+            if len(words) <= 3:
+                allAdjectives |= set([x.lower() for x in words])
+            for i in range(len(words)):
+                word = words[i].lower()
+                if word in allAdjectives and word in self.lexicon:
+                    score = float(self.lexicon[word])
+                    multiplier = self.PredictMultiplier(word, dependencies[word], words, i)
+                    if multiplier != 0:
+                        impactTable[word] = (math.fabs(score*multiplier), multiplier)
+                        sentenceImpact += math.fabs(score * multiplier)
+            totalImpact += sentenceImpact
+        return totalImpact, impactTable
