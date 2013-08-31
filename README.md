@@ -3,7 +3,7 @@ Given a review, the system classifies it into <b>positive</b>, <b>negative</b> o
 It is possible to crawl reviews of a certain restaurant and get an analysis of the reviews for that restaurant. However, it is for educational purposes only, as Yelp TOC may not allow usage of their content by other parties.  
   
 The other possibility is to crawl movie reviews from IMDB (<a href=https://github.com/shaileshahuja/SentimentBlade/issues/8>to be implemented</a>). 
-The algorithm has been optimised for movie reviews, using an algorithm called(<a href=https://github.com/shaileshahuja/SentimentBlade/issues/9>impact training</a>).
+The algorithm has been optimised for movie reviews, using an algorithm called <a href=https://github.com/shaileshahuja/SentimentBlade/issues/9>impact training</a>.
 The results of impact training were facinating, as the accuracy rose from 57.15% to 91.75% of the sample movie reviews dataset.
 
 
