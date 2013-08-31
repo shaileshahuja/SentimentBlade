@@ -4,7 +4,7 @@ from Utils import UtilMethods as util
 from termcolor import cprint
 from xml.etree import ElementTree as ET
 from Sentiment import Sentiment
-from God import God
+from Angel import Angel
 __author__ = 'shailesh'
 
 
@@ -93,8 +93,8 @@ class PerformanceTest:
         This method loads the test data file, and tests how good the prediction is.
         It also prints the precision, recall and F1 scores.
         """
-        god = God(self.lexicon, True)
-        god.SetDebugParameters(7, -7)
+        angel = Angel(self.lexicon, True)
+        angel.SetDumpParameters(7, -7)
         posx, negx, neutx, accx, = 0, 0, 0, 0
         maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
         for threshold in range(1, 0, -1):
@@ -111,7 +111,7 @@ class PerformanceTest:
                         break
                     label = int(label)
                     expectedSentiment.append(label)
-                    predicted = god.PredictReviewScore(sentences, notCount, label)
+                    predicted = angel.PredictReviewScore(sentences, label)
                     predictedOverall.append(Sentiment.GetSentimentClass(predicted, threshold))
                     if label == Sentiment.POSITIVE:
                         TotPos += 1
@@ -119,7 +119,7 @@ class PerformanceTest:
                         TotNeg += 1
                     else:
                         TotNeut += 1
-                    if god.DebugRequested(predicted, label):
+                    if angel.DumpRequested(predicted, label):
                         print "ID", docId, "\n"
                         demons += 1
                 except StopIteration:
@@ -166,7 +166,8 @@ if __name__ == "__main__":
     textSFile = "../files/100HungryGoWhereReviews.txt"
     XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
     lexPath = "../files/lexicons/SentiWordNet_Lexicon_concise.csv"
-    se = PerformanceTest(lexPath, jsonFile)
+    movieLexPath = "../files/lexicons/NLTKMovies.csv"
+    se = PerformanceTest(movieLexPath, jsonFile)
     # se = PerformanceTest(lexPath, XMLFile)
     # se = PerformanceTest(lexPath, textFile)
     # se = PerformanceTest(lexPath, textSFile)

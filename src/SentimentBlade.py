@@ -5,7 +5,7 @@ import json
 from Utils import UtilMethods as util
 from YelpCrawler import YelpCrawler
 from XMLHandler import LoadCrawledXMLFile,DumpSortedReviews
-from God import God
+from Angel import Angel
 from Sentiment import Sentiment
 
 
@@ -32,7 +32,7 @@ class SentimentBlade:
 
         #PREDICT
         lexicon = util.LoadLexiconFromCSV("../files/SentiWordNet_Lexicon_concise.csv")
-        god = God(lexicon, True)
+        angel = Angel(lexicon, True)
         parsedReviewsPath = os.path.join(os.path.dirname(filePath), "ParsedList.json")
         with open(parsedReviewsPath, 'r') as file:
             TrainingFile = file.read()
@@ -46,8 +46,8 @@ class SentimentBlade:
                 sentences = current["Sentences"]
             else:
                 continue
-            current["Label"] = Sentiment.GetSentimentClass(god.PredictReviewScore(sentences, notCount), 1)
-            god.DumpDetails(sentences, notCount, current["Label"])
+            current["Label"] = Sentiment.GetSentimentClass(angel.PredictReviewScore(sentences, notCount), 1)
+            angel.DumpDetails(sentences, notCount, current["Label"])
 
         #DUMP
         classifiedData = json.dumps(classificationData, indent=4)

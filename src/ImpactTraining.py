@@ -4,7 +4,7 @@ from collections import defaultdict
 import numpy
 import csv
 from Sentiment import Sentiment
-from God import God
+from Angel import Angel
 from Utils import UtilMethods as util
 from PerformanceTest import PerformanceTest
 
@@ -22,22 +22,27 @@ def ImpactTraining(docPath, lexPath, lexiconID):
     Repeat process until there is performance improvement.
     """
     oldAccuracy = 0
+    oldAngel = None
     se = PerformanceTest(lexPath, docPath)
     while True:
         adjustments = defaultdict(list)
         iterator = se.GetIter()
-        god = God(se.lexicon)
+        newAngel = Angel(se.lexicon)
         expectedSentiment, predictedOverall = [], []
         while True:
             try:
-                sentences, label, notCount, docId = se.NextElement(iterator)
-                expectedSentiment.append(label)
-                predictedScore = god.PredictReviewScore(sentences, notCount, label)
-                predictedOverall.append(Sentiment.GetSentimentClass(predictedScore, 1))
-                if (label == Sentiment.POSITIVE and predictedScore >= label) or (label == Sentiment.NEGATIVE and predictedScore <= label):
-                    continue
-                totalImpact, impactTable = god.GetImpact(sentences)
-                totalAdjustment = label - predictedScore
+                sentences, expectedLabel, notCount, docId = se.NextElement(iterator)
+                expectedSentiment.append(expectedLabel)
+                predictedScore = newAngel.PredictReviewScore(sentences, expectedLabel)
+                predictedLabel = Sentiment.GetSentimentClass(predictedScore)
+                predictedOverall.append(predictedLabel)
+                if oldAngel is not None:
+                    oldPredictedLabel = Sentiment.GetSentimentClass(oldAngel.PredictReviewScore(sentences, expectedLabel))
+                    if oldPredictedLabel != predictedLabel:
+                        oldAngel.DumpDetails(sentences, expectedLabel)
+                        newAngel.DumpDetails(sentences, expectedLabel)
+                totalImpact, impactTable = newAngel.GetImpact(sentences)
+                totalAdjustment = expectedLabel*10 - predictedScore
                 for word, (wordScore, multiplier) in impactTable.iteritems():
                     wordAdjustment = ((wordScore/totalImpact) * totalAdjustment) / multiplier
                     if wordAdjustment != 0:
@@ -50,12 +55,13 @@ def ImpactTraining(docPath, lexPath, lexiconID):
             break
         for word in adjustments:
             se.lexicon[word] = str(float(se.lexicon[word]) + numpy.mean(adjustments[word]))
+        oldAngel = newAngel
         oldAccuracy = newAccuracy
 
     filename = "../files/lexicons/" + lexiconID + ".csv"
     handle = open(filename, 'wb')
     wr = csv.writer(handle)
-    for key, value in sorted(se.lexicon.items()):
+    for key, value in sorted(oldAngel.lexicon.items()):
         row = [key, value]
         wr.writerow(row)
     handle.close()
