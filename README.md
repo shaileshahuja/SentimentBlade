@@ -4,7 +4,7 @@ It is possible to crawl reviews of a certain restaurant and get an analysis of t
   
 The other possibility is to crawl movie reviews from IMDB (<a href=https://github.com/shaileshahuja/SentimentBlade/issues/8>to be implemented</a>). 
 The algorithm has been optimised for movie reviews, using an algorithm called <a href=https://github.com/shaileshahuja/SentimentBlade/issues/9>impact training</a>.
-The results of impact training were facinating, as the accuracy rose from 57.15% to 91.75% of the sample movie reviews dataset.
+The results of impact training were fascinating, as the accuracy rose from 57.15% to 91.75% of the sample movie reviews dataset.
 
 
 <b>The in-depth analysis of each review includes:</b>  
