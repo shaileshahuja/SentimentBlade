@@ -28,7 +28,7 @@ def PrepareTextFile():
 def ParseAndAppendLabels(filePath):
     command = "java -jar " + os.path.dirname(os.path.abspath(__file__)) + "/stanfordparser.jar " + "txt" + " " + filePath
     error = os.system(command)
-    outputPath = os.path.join(os.path.dirname(filePath), "ParsedList.json")
+    outputPath = os.path.join(os.path.dirname(filePath), "YelpParsedReviews.json")
     with open(outputPath,'r') as file:
         TrainingFile = file.read()
     classificationData = json.loads(TrainingFile)

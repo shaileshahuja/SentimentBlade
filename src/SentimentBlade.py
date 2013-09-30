@@ -15,25 +15,40 @@ class SentimentBlade:
         self.url = url
 
     def Run(self):
-        #CRAWL
         crawlerOutputPath = "../files/CrawlerOutput2.xml"
+        self.crawl(crawlerOutputPath)
+
+        filePath = "../files/FilteredReviews.xml"
+        self.filter(crawlerOutputPath, filePath)
+
+        self.parse(filePath)
+
+        classificationData = self.predict(filePath)
+        filename = os.path.join(os.path.dirname(filePath), 'YelpPredictedReviews.json')
+        self.dump(classificationData, filename)
+
+    def crawl(self, crawlerOutputPath):
+        #CRAWL
         crawler = YelpCrawler(url, crawlerOutputPath)
         crawler.Crawl()
 
-        #FILTER
+    def parse(self, filePath):
+        #PARSE
+        _, fileExtension = os.path.splitext(filePath)
+        os.system("java -jar ../files/stanfordparser.jar " + fileExtension[1:] + " " + filePath)
+
+    def filter(self, crawlerOutputPath, filePath):
+         #FILTER
         # TODO: filter reviews here
         reviews = LoadCrawledXMLFile(crawlerOutputPath)
         # now dump the output to xml file
-        filePath = "../files/FilteredReviews.xml"
         DumpSortedReviews(reviews, filePath)
 
-        #PARSE
-        os.system("java -jar ../files/stanfordparser.jar xml " + filePath)
-
-        #PREDICT
-        lexicon = util.LoadLexiconFromCSV("../files/SentiWordNet_Lexicon_concise.csv")
+    def predict(self, filePath):
+         #PREDICT
+        lexicon = util.LoadLexiconFromCSV("../files/lexicons/SentiWordNet_Lexicon_concise.csv")
         angel = Angel(lexicon, True)
-        parsedReviewsPath = os.path.join(os.path.dirname(filePath), "ParsedList.json")
+        parsedReviewsPath = os.path.join(os.path.dirname(filePath), "YelpParsedReviews.json")
         with open(parsedReviewsPath, 'r') as file:
             TrainingFile = file.read()
         classificationData = json.loads(TrainingFile)
@@ -47,12 +62,13 @@ class SentimentBlade:
             else:
                 continue
             current["Label"] = Sentiment.GetSentimentClass(angel.PredictReviewScore(sentences, notCount), 1)
-            angel.DumpDetails(sentences, notCount, current["Label"])
+            angel.DumpDetails(sentences, current["Label"])
+        return classificationData
 
-        #DUMP
+    def dump(self, classificationData, filename):
+           #DUMP
         classifiedData = json.dumps(classificationData, indent=4)
-        filename = os.path.join(os.path.dirname(filePath), 'PredictedList.json')
-        with open(filename,'w') as file:
+        with open(filename, 'w') as file:
             file.write(classifiedData)
         print "Classification complete. Final output stored at:," + filename
 
@@ -60,4 +76,5 @@ class SentimentBlade:
 if __name__ == "__main__":
     url = "http://www.yelp.com.sg/biz/kokkari-estiatorio-san-francisco"
     SB = SentimentBlade(url)
-    SB.Run()
+    # SB.Run()
+    SB.parse("../files/tweets.txt")

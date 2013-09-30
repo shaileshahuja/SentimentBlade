@@ -21,6 +21,7 @@ class PerformanceTest:
             self.docType = "xml"
         else:
             self.docType = "json"
+        self.iterator = self.GetIter()
 
     def GetIter(self):
         """
@@ -79,14 +80,14 @@ class PerformanceTest:
         label = current["Label"]
         return sentences, label, notCount, docId
 
-    def NextElement(self, iterator):
+    def NextElement(self):
         """
         Returns the next element from the iterator
         """
         if self.docType == 'json':
-            return self.NextJSONElement(iterator)
+            return self.NextJSONElement(self.iterator)
         if self.docType == 'xml':
-            return self.NextXMLElement(iterator)
+            return self.NextXMLElement(self.iterator)
 
     def PerformTest(self):
         """
@@ -98,13 +99,12 @@ class PerformanceTest:
         posx, negx, neutx, accx, = 0, 0, 0, 0
         maxnegf1 = maxneutf1 = maxposf1 = maxacc = 0
         for threshold in range(1, 0, -1):
-            iterator = self.GetIter()
             predictedOverall = []
             expectedSentiment = []
             demons = TotPos = TotNeg = TotNeut = 0
             while True:
                 try:
-                    sentences, label, notCount, docId = self.NextElement(iterator)
+                    sentences, label, notCount, docId = self.NextElement()
                     if not sentences:
                         continue
                     if label == 'NULL':
@@ -160,14 +160,19 @@ class PerformanceTest:
         print "Maximum Neutral F1: ", '{:.2%}'.format(maxneutf1), "at", neutx
         cprint("Maximum Accuracy: " + '{:.2%}'.format(maxacc) + " at " + str(accx), 'red')
 
+    def ResetIterator(self):
+        self.iterator = self.GetIter()
+
+
 if __name__ == "__main__":
     jsonFile = "../files/1000NTLKMovieReviews.json"
     textFile = "../files/1000HungryGoWhereReviews.txt"
     textSFile = "../files/100HungryGoWhereReviews.txt"
     XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
+    tweets = "../files/tweets.json"
     lexPath = "../files/lexicons/SentiWordNet_Lexicon_concise.csv"
     movieLexPath = "../files/lexicons/NLTKMovies.csv"
-    se = PerformanceTest(movieLexPath, jsonFile)
+    se = PerformanceTest(movieLexPath, tweets)
     # se = PerformanceTest(lexPath, XMLFile)
     # se = PerformanceTest(lexPath, textFile)
     # se = PerformanceTest(lexPath, textSFile)

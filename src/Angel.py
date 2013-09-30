@@ -1,3 +1,5 @@
+from cgitb import small
+
 __author__ = 'Shailesh'
 
 import copy
@@ -17,10 +19,11 @@ class Angel:
                      "poor", "badly", "sadly", "sucks", "sucked", "crispy", "yelled", "love", "loved", "loving",
                      "poorly", "underwhelming"}
 
-    def __init__(self, lexicon, debug=False):
+    def __init__(self, lexicon, debug=False, smallReviews=False):
         self.lexicon = copy.deepcopy(lexicon)
         self.debug = debug
         self.DumpRequested = self.DefaultDumpFunction
+        self.smallReviews = smallReviews
 
     def SetDumpParameters(self, positiveThreshold=1, negativeThreshold=-1):
         self.positiveThreshold = positiveThreshold
@@ -32,6 +35,8 @@ class Angel:
         The values have been determined experimentally to maximize results.
         """
         # Get the list of Adjectives which have sentiment polarity greater than 0.1
+        if self.smallReviews:
+            return 1.0
         PolarAdjList = [l for l in adjectives if l in self.lexicon and math.fabs(float(self.lexicon[l])) > 0.1]
         if len(PolarAdjList) > 0:
             return 12.0/len(PolarAdjList)
@@ -39,7 +44,6 @@ class Angel:
         #        return 2.0
         else:
             return 1.0
-    #    return 1.0
 
     def PredictMultiplier(self, word, dependencies, words, i):
         """

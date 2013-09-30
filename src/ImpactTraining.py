@@ -26,12 +26,12 @@ def ImpactTraining(docPath, lexPath, lexiconID):
     se = PerformanceTest(lexPath, docPath)
     while True:
         adjustments = defaultdict(list)
-        iterator = se.GetIter()
-        newAngel = Angel(se.lexicon)
+        newAngel = Angel(se.lexicon, smallReviews=True)
         expectedSentiment, predictedOverall = [], []
+        se.ResetIterator()
         while True:
             try:
-                sentences, expectedLabel, notCount, docId = se.NextElement(iterator)
+                sentences, expectedLabel, notCount, docId = se.NextElement()
                 expectedSentiment.append(expectedLabel)
                 predictedScore = newAngel.PredictReviewScore(sentences, expectedLabel)
                 predictedLabel = Sentiment.GetSentimentClass(predictedScore)
@@ -42,8 +42,12 @@ def ImpactTraining(docPath, lexPath, lexiconID):
                         oldAngel.DumpDetails(sentences, expectedLabel)
                         newAngel.DumpDetails(sentences, expectedLabel)
                 totalImpact, impactTable = newAngel.GetImpact(sentences)
+                if totalImpact == 0:
+                    continue
                 totalAdjustment = expectedLabel*10 - predictedScore
                 for word, (wordScore, multiplier) in impactTable.iteritems():
+                    if multiplier == 0:
+                        continue
                     wordAdjustment = ((wordScore/totalImpact) * totalAdjustment) / multiplier
                     if wordAdjustment != 0:
                         adjustments[word].append(wordAdjustment)
@@ -72,4 +76,5 @@ if __name__ == "__main__":
     textSFile = "../files/100HungryGoWhereReviews.txt"
     XMLFile = "../files/1000YelpKokariEstoriatoReviews.xml"
     lexPath = "../files/lexicons/SentiWordNet_Lexicon_concise.csv"
-    ImpactTraining(jsonFile, lexPath, "NLTKMovies")
+    tweets = "../files/tweets.json"
+    ImpactTraining(tweets, lexPath, "SemEval")
