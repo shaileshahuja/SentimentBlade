@@ -12,6 +12,7 @@ class PredictionFunctions:
     # NegativeModifiers = ["not", "n't", "no", "nothing"]
     # PositiveModifiers = ["very", "so", "really"]
 
+
     @staticmethod
     def DependencyFunction(lexicon, word, dependencies, words, i):
         """
@@ -45,6 +46,7 @@ class PredictionFunctions:
             multiplier *= 0.5
         return multiplier
 
+
     @staticmethod
     def RelativeFunction(lexicon, word, dependencies, words, i):
         """
@@ -73,6 +75,7 @@ class PredictionFunctions:
                 else:
                     multiplier *= -0.5
         return multiplier
+
 
     @staticmethod
     def CombinedFunction(lexicon, word, dependencies, words, i):
